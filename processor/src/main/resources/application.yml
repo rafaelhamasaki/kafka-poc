@@ -1,0 +1,11 @@
+server.port: 8090
+spring:
+  kafka:
+    consumer:
+      properties:
+        spring.json.trusted.packages: io.github.yukiohama.domain.*
+  cloud.stream:
+    function:
+      definition: process
+      bindings:
+        process-in-0: orders

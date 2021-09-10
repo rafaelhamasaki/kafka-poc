@@ -1,0 +1,5 @@
+spring.cloud.stream:
+  function:
+    definition: receive
+    bindings:
+        receive-in-0: orders
