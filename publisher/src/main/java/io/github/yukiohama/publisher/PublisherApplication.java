@@ -16,27 +16,27 @@ import org.springframework.web.bind.annotation.RestController;
 @SpringBootApplication
 public class PublisherApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PublisherApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(PublisherApplication.class, args);
+    }
 
-	@RestController
-	public static class OrderController {
-		@Autowired
-		private KafkaTemplate<String, OrderPlaced> template;
+    @RestController
+    public static class OrderController {
 
-		@PostMapping
-		@ResponseStatus(HttpStatus.ACCEPTED)
-		public void placeOrder(@RequestBody Order order) {
-			// Request object used for the sake of simplicity. In reality a OrderPlaced event object would be more appropriate.
-			template.send("orders", new OrderPlaced(order.getMerchantId(), order.getProductId()));
-		}
-	}
+        @Autowired
+        private KafkaTemplate<String, OrderPlaced> template;
 
-	@NoArgsConstructor
-	@Getter
-	static class Order {
-		private String merchantId;
-		private String productId;
-	}
+        @PostMapping
+        @ResponseStatus(HttpStatus.ACCEPTED)
+        public void placeOrder(@RequestBody Order order) {
+            template.send("orders", new OrderPlaced(order.getMerchantId(), order.getProductId()));
+        }
+    }
+
+    @NoArgsConstructor
+    @Getter
+    static class Order {
+        private String merchantId;
+        private String productId;
+    }
 }
