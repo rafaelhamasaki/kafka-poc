@@ -3,24 +3,22 @@ package io.github.yukiohama.processor;
 import io.github.yukiohama.domain.OrderPlaced;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.ToString;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.apache.kafka.streams.state.ReadOnlyWindowStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.stream.binder.kafka.streams.InteractiveQueryService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.Order;
-import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -37,8 +35,8 @@ public class ProcessorApplication {
         @Bean
         public Consumer<KStream<String, OrderPlaced>> process() {
             return input -> input
-                    .map((key, value) -> new KeyValue<>(value, value))
-                    .groupByKey(Grouped.with(new JsonSerde<>(OrderPlaced.class), new JsonSerde<>(OrderPlaced.class)))
+                    .map((key, value) -> new KeyValue<>(value.getMerchantId(), value.getMerchantId()))
+                    .groupByKey(Grouped.with(Serdes.String(), Serdes.String()))
                     .count(Materialized.as("orders-placed"));
         }
     }
@@ -51,15 +49,15 @@ public class ProcessorApplication {
 
         @GetMapping
         public List<OrderCount> list() {
-            ReadOnlyKeyValueStore<OrderPlaced, Long> ordersPlacedStore =
-                    interactiveQueryService.getQueryableStore("orders-placed", QueryableStoreTypes.<OrderPlaced, Long>keyValueStore());
-            KeyValueIterator<OrderPlaced, Long> iterator = ordersPlacedStore.all();
+            ReadOnlyKeyValueStore<String, Long> ordersPlacedStore =
+                    interactiveQueryService.getQueryableStore("orders-placed", QueryableStoreTypes.keyValueStore());
+            KeyValueIterator<String, Long> iterator = ordersPlacedStore.all();
 
             List<OrderCount> orderCountList = new ArrayList<>();
 
             while (iterator.hasNext()) {
-                KeyValue<OrderPlaced, Long> next = iterator.next();
-                orderCountList.add(new OrderCount(next.key.getMerchantId(), next.value));
+                KeyValue<String, Long> next = iterator.next();
+                orderCountList.add(new OrderCount(next.key, next.value));
             }
 
             return orderCountList;
