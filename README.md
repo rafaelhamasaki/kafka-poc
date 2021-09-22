@@ -22,7 +22,7 @@ docker-compose exec broker kafka-topics \
    --partitions 1 \
    --topic orders
 ```
-3.  `mvn clean package` all projects
+3.  `mvn clean install` all projects
 4. Execute the generated jars with `java -jar <jar-name>`
 
 ## Usage
