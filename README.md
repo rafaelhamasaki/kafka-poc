@@ -2,7 +2,6 @@
 
 A very simple Spring Boot + Kafka proof of concept with a publisher, a simple subscriber and a stream processor.
 
-
 ## Projects
 
  - **domain** - Holds common domain events (only one in this PoC, `OrderPlaced`)
